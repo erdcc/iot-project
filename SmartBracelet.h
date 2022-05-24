@@ -4,19 +4,18 @@
 // Message struct
 typedef nx_struct sb_msg {
   	nx_uint8_t msg_type;
-  	nx_uint16_t msg_id;
+  	nx_uint8_t msg_id;
 
   	nx_uint8_t data[20];
-  	nx_uint16_t X;
-  	nx_uint16_t Y;
+  	nx_uint8_t X;
+  	nx_uint8_t Y;
 } sb_msg_t;
 
 typedef struct sensorStatus {
   uint8_t status[20];
-  uint16_t X;
-  uint16_t Y;
+  uint8_t X;
+  uint8_t Y;
 }sensor_status;
-
 
 // Constants
 enum {
@@ -28,6 +27,11 @@ static const char *RANDOM_KEY[]={
 	"WEWERWERWRWERWERWEEE",
 	"HJKHJKHJKHJKHJKHJKHJ",
 };
+
+#define PAIRING 0
+#define CONFIRMATION 1
+#define OPERATION 2
+#define ALARM 3
 /*
 // Pre-loaded random keys
 #define FOREACH_KEY(KEY) \

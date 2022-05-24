@@ -35,10 +35,11 @@ implementation
 		} else {
 		  memcpy(status.status, "FALLING",20);
 		}
-	  
-	  signal Read.readDone( SUCCESS, status);
+	
 	  status.X = random_x;
 	  status.Y = random_y;
-	dbg("Info","%d\n\n",random_x);
+	  
+	  signal Read.readDone( SUCCESS, status);
+	  
 	}
 }  
