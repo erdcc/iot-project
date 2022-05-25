@@ -66,7 +66,7 @@ implementation {
  
   event void TimerPairing.fired() {
     counter++;
-    dbg("TimerPairing", "TimerPairing: timer fired @ %s\n", sim_time_string());
+    dbg("TimerPairing", "TimerPairing is fired @ %s\n", sim_time_string());
     if (!busy) {
       sb_msg_t* sb_pairing_message = (sb_msg_t*)call Packet.getPayload(&packet, sizeof(sb_msg_t));
       
@@ -78,7 +78,7 @@ implementation {
       memcpy(sb_pairing_message->data, RANDOM_KEY[TOS_NODE_ID/2],20);
       
       if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(sb_msg_t)) == SUCCESS) {
-	      dbg("Radio", "Radio: sending pairing packet, key=%s\n", RANDOM_KEY[TOS_NODE_ID/2]);	
+	      dbg("Radio", "Broadcasting pairing packet with key=%s\n", RANDOM_KEY[TOS_NODE_ID/2]);	
 	      busy = TRUE;
       }
     }
@@ -86,14 +86,13 @@ implementation {
   
   // Timer10s fired
   event void Timer10s.fired() {
-    dbg("Timer10s", "Timer10s: timer fired at time %s\n", sim_time_string());
-    //call PositionSensor.read();
+    dbg("Timer10s", "Timer10s is fired @ %s\n", sim_time_string());
     call FakeSensor.read();
   }
 
   // Timer60s fired
   event void Timer60s.fired() {
-    dbg("Timer60s", "Timer60s: timer fired at time %s\n", sim_time_string());
+    dbg("Timer60s", "Timer60s is fired @ %s\n", sim_time_string());
     dbg("Info", "ALERT: MISSING\n");
     dbg("Info","Last known location: %hhu, Y: %hhu\n", last_status.X, last_status.Y);
 
@@ -105,22 +104,24 @@ implementation {
     if (&packet == bufPtr && error == SUCCESS) {
       dbg("Radio_sent", "Packet sent\n");
       busy = FALSE;
+      if(phase == PAIRING){
+		dbg("Pairing","Pairing message is broadcasted!\n\n");      
       
-      if (phase == CONFIRMATION && call PacketAcknowledgements.wasAcked(bufPtr) ){
+      }else if (phase == CONFIRMATION && call PacketAcknowledgements.wasAcked(bufPtr) ){
         // Phase == 1 and ack received
         phase = OPERATION; // Pairing phase 1 completed
         dbg("Radio_ack", "PAIRING-ACK received at time %s\n", sim_time_string());
-        dbg("Pairing","PAIRING completed for node: %hhu\n", address_coupled_device);
+        dbg("Pairing","PAIRING completed for node: %hhu\n\n", address_coupled_device);
         
         // Start operational phase
         if (TOS_NODE_ID % 2 == 0){
           // Parent bracelet
-          dbg("OperationalMode","Parent bracelet\n");
+          dbg("OperationalMode","Parent bracelet\n\n");
           //call SerialControl.start();
           call Timer60s.startOneShot(60000);
         } else {
           // Child bracelet
-          dbg("OperationalMode","Child bracelet\n");
+          dbg("OperationalMode","Child bracelet\n\n");
           call Timer10s.startPeriodic(10000);
         }
       
