@@ -127,7 +127,7 @@ print "Start simulation with TOSSIM! \n\n\n";
 node1off = False;
 
 simtime = t.time();
-while (t.time() < simtime + (200 * t.ticksPerSecond())):
+while (t.time() < simtime + (20 * t.ticksPerSecond())):
 	t.runNextEvent()
 	if(node1off == False):
 		if (t.time() >= (60 * t.ticksPerSecond())): 
