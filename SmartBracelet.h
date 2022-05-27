@@ -11,6 +11,7 @@ typedef nx_struct sb_msg {
   	nx_uint8_t Y;
 } sb_msg_t;
 
+
 typedef struct sensorStatus {
   uint8_t status[20];
   uint8_t X;
@@ -22,6 +23,7 @@ enum {
   AM_RADIO_TYPE = 6,
 };
 
+
 static const char *RANDOM_KEY[]={
 	"ASDASDASDASDASDASDDD",
 	"XCVXCVXCVXCVXCVXCVVV",
@@ -32,7 +34,7 @@ static const char *RANDOM_KEY[]={
 #define PAIRING 0
 #define CONFIRMATION 1
 #define OPERATION 2
-#define ALARM 3
+//S#define ALARM 3
 
 
 #endif

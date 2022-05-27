@@ -30,10 +30,10 @@ implementation {
   message_t packet;
   am_addr_t address_coupled_device;
   uint8_t attempt = 0;
-  
+
   // Current and previous phase
   uint8_t phase[] = {0,0,0,0};
-  uint8_t prev_phase = 0;
+
   
   // Sensors
   //bool sensors_read_completed = FALSE;
@@ -96,7 +96,7 @@ implementation {
   event void Timer60s.fired() {
     dbg("Timer60s", "Timer60s is fired @ %s\n", sim_time_string());
     dbg("Info", "ALERT: MISSING\n");
-    dbg("Info","Last known location: %hhu, Y: %hhu\n", last_status.X, last_status.Y);
+    dbg("Info","Last known location: %hhu, Y: %hhu\n\n", last_status.X, last_status.Y);
 
     //send to serial here
 
@@ -110,11 +110,8 @@ implementation {
       
       if (message->msg_type == PAIRING){
        dbg("Pairing","Pairing message broadcasting completed!\n\n");
-       //prev_phase=CONFIRMATION;
-       //send_confirmation();
-       }
-       
-      else if(phase[TOS_NODE_ID] == CONFIRMATION && call PacketAcknowledgements.wasAcked(bufPtr) ){
+      
+       }else if(phase[TOS_NODE_ID] == CONFIRMATION && call PacketAcknowledgements.wasAcked(bufPtr) ){
         // PHASE == 1 and ack received
         
         phase[TOS_NODE_ID] = OPERATION; // Pairing phase 1 completed
@@ -184,21 +181,17 @@ implementation {
       dbg_clear("Radio_pack","\t|\t%-58s|\n","INFO message received");
       dbg_clear("Info", "\t|\tPosition X: %hu, Y: %-39hu |\n", mess->X, mess->Y);
       dbg_clear("Info", "\t|\tSensor status: %-42s |\n", mess->data);
+      dbg_clear("Info","\t|-----------------------------------------------------------------|\n");
       last_status.X = mess->X;
       last_status.Y = mess->Y;
-      call Timer60s.startOneShot(60000);
-      
       // check if FALLING
-      if (memcmp(mess->data, "FALLING",20) == 0){
+      if (memcmp(mess->data,"FALLING",20) == 0){
+      
         dbg("Info", "ALERT: FALLING!\n");
- 	//send to serial here
- 	    
+ 		//send to serial here
       }
-      dbg_clear("Info","\t|-----------------------------------------------------------------|\n");
+      call Timer60s.startOneShot(60000);
     }
-
-    
-
     return bufPtr;
   }
 
