@@ -32,7 +32,7 @@ implementation {
   uint8_t attempt = 0;
   
   // Current and previous phase
-  uint8_t phase = 0;
+  uint8_t phase[] = {0,0,0,0};
   uint8_t prev_phase = 0;
   
   // Sensors
@@ -104,18 +104,20 @@ implementation {
 
   event void AMSend.sendDone(message_t* bufPtr, error_t error) {
     if (&packet == bufPtr && error == SUCCESS) {
+      sb_msg_t* message = (sb_msg_t*)call Packet.getPayload(&packet, sizeof(sb_msg_t));
       dbg("Radio_sent", "Packet sent\n");
       busy = FALSE;
       
-      if(phase == PAIRING){
-		dbg("Pairing","Pairing message broadcasting completed!\n\n");            
-      }else if (phase == CONFIRMATION && prev_phase == PAIRING){
+      if (message->msg_type == PAIRING){
        dbg("Pairing","Pairing message broadcasting completed!\n\n");
+       //prev_phase=CONFIRMATION;
+       //send_confirmation();
        }
        
-      if(phase == CONFIRMATION && call PacketAcknowledgements.wasAcked(bufPtr) ){
+      else if(phase[TOS_NODE_ID] == CONFIRMATION && call PacketAcknowledgements.wasAcked(bufPtr) ){
         // PHASE == 1 and ack received
-        phase = OPERATION; // Pairing phase 1 completed
+        
+        phase[TOS_NODE_ID] = OPERATION; // Pairing phase 1 completed
         dbg("Radio_ack", "PAIRING-ACK received at time %s\n", sim_time_string());
         dbg("Pairing","PAIRING completed for mote: %hhu\n\n", address_coupled_device);
         
@@ -131,20 +133,17 @@ implementation {
           call Timer10s.startPeriodic(10000);
         }
       
-      }else if (phase == CONFIRMATION && prev_phase == PAIRING){
-      	prev_phase=CONFIRMATION;	
-		send_confirmation(); 
-      }else if (phase == CONFIRMATION){
+      }else if (phase[TOS_NODE_ID] == CONFIRMATION){
         // PHASE == 1 but ack not received
         dbg("Radio_ack", "CONF-ACK not received in CONFIRMATION phase\n\n");
         send_confirmation(); // Send confirmation again
       
-      } else if (phase == OPERATION && call PacketAcknowledgements.wasAcked(bufPtr)){
+      } else if (phase[TOS_NODE_ID] == OPERATION && call PacketAcknowledgements.wasAcked(bufPtr)){
         // PHASE == 2 and ack received
         dbg("Radio_ack", "INFO-ACK received at time %s\n\n", sim_time_string());
         attempt = 0;
         
-      } else if (phase == OPERATION){
+      } else if (phase[TOS_NODE_ID] == OPERATION){
         // PHASE == 2 and ack not received
         dbg("Radio_ack", "INFO-ACK not received in OPERATION phase\n\n");
         send_info_message();
@@ -157,28 +156,34 @@ implementation {
     sb_msg_t* mess = (sb_msg_t*)payload;
     // Print data of the received packet
 	  dbg("Radio_rec","Message received from mote %hhu at time %s\n", call AMPacket.source( bufPtr ), sim_time_string());
-	  dbg("Info","|-------------------------------------------------------------|\n");
-	  dbg("Radio_pack","|\tPayload: type: %hu, msg_id: %hhu, data: %-22s|\n", mess->msg_type, mess->msg_id, mess->data);
+	  dbg_clear("Info","\t|-----------------------------------------------------------------|\n");
+	  dbg_clear("Radio_pack","\t|\tPayload: type: %hu, msg_id: %hhu, data: %-23s|\n", mess->msg_type, mess->msg_id, mess->data);
     
-    if (call AMPacket.destination( bufPtr ) == AM_BROADCAST_ADDR && phase == PAIRING && memcmp(mess->data, RANDOM_KEY[TOS_NODE_ID/2],20) == 0){
+    if (call AMPacket.destination( bufPtr ) == AM_BROADCAST_ADDR && memcmp(mess->data, RANDOM_KEY[TOS_NODE_ID/2],20) == 0){
       address_coupled_device = call AMPacket.source( bufPtr );
-      phase = CONFIRMATION; //  confirmation of pairing 
-      dbg("Radio_pack","|\tMessage for PAIRING request received. Address: %-10hhu|\n", address_coupled_device);
-      dbg("Info","|-------------------------------------------------------------|\n");
+      phase[TOS_NODE_ID] = CONFIRMATION; //  confirmation of pairing 
+      dbg_clear("Radio_pack","\t|\tMessage for PAIRING request received. Mote: %-14hhu|\n", address_coupled_device);
+      dbg_clear("Info","\t|\t%-50s|\n","This is the pair device!");
+      dbg_clear("Info","\t|-----------------------------------------------------------------|\n");
       send_confirmation();
     
-    } else if (call AMPacket.destination( bufPtr ) == TOS_NODE_ID && mess->msg_type == CONFIRMATION) {
+    } else if(call AMPacket.destination( bufPtr ) == AM_BROADCAST_ADDR ){
+      dbg_clear("Radio_pack","\t|\tMessage for PAIRING request received. Mote: %-14hhu|\n", call AMPacket.source( bufPtr ));
+      dbg_clear("Radio_pack","\t|\tThis is not the right pair. Mote:%-20hhu|\n", call AMPacket.source( bufPtr ));
+      dbg_clear("Info","\t|-----------------------------------------------------------------|\n");
+    
+    }else if (call AMPacket.destination( bufPtr ) == TOS_NODE_ID && mess->msg_type == CONFIRMATION) {
       // Enters if the packet is for this destination and if the msg_type == 1
-      dbg("Radio_pack","|\t%-57s|\n","Message for CONFIRMATION received");
-      dbg("Info","|-------------------------------------------------------------|\n");
+      dbg_clear("Radio_pack","\t|\t%-58s|\n","Message for CONFIRMATION received");
+      dbg_clear("Info","\t|-----------------------------------------------------------------|\n");
       call TimerPairing.stop();
       
     } else if (call AMPacket.destination( bufPtr ) == TOS_NODE_ID && mess->msg_type == OPERATION) {
       // Enters if the packet is for this destination and if msg_type == 2
       //dbg("Info","|-------------------------------------------------------------|\n");
-      dbg("Radio_pack","|\t%-57s|\n","INFO message received");
-      dbg("Info", "|\tPosition X: %hu, Y: %-38hu |\n", mess->X, mess->Y);
-      dbg("Info", "|\tSensor status: %-41s |\n", mess->data);
+      dbg_clear("Radio_pack","\t|\t%-58s|\n","INFO message received");
+      dbg_clear("Info", "\t|\tPosition X: %hu, Y: %-39hu |\n", mess->X, mess->Y);
+      dbg_clear("Info", "\t|\tSensor status: %-42s |\n", mess->data);
       last_status.X = mess->X;
       last_status.Y = mess->Y;
       call Timer60s.startOneShot(60000);
@@ -189,7 +194,7 @@ implementation {
  	//send to serial here
  	    
       }
-      dbg("Info","|-------------------------------------------------------------|\n");
+      dbg_clear("Info","\t|-----------------------------------------------------------------|\n");
     }
 
     
@@ -199,10 +204,10 @@ implementation {
 
   event void FakeSensor.readDone(error_t result, sensor_status status_local) {
     status = status_local;
-    dbg("Info","|-------------------------------------------------------------|\n");
-    dbg("Sensors", "|\tSensor status: %-42s|\n", status.status);
-    dbg("Sensors", "|\tPosition X: %hhu, Y: %-39hhu|\n", status_local.X, status_local.Y);
-    dbg("Info","|-------------------------------------------------------------|\n");
+    dbg_clear("Info","\t|-----------------------------------------------------------------|\n");
+    dbg_clear("Sensors", "\t|\tSensor status: %-42s|\n", status.status);
+    dbg_clear("Sensors", "\t|\tPosition X: %hhu, Y: %-39hhu|\n", status_local.X, status_local.Y);
+    dbg_clear("Info","\t|-----------------------------------------------------------------|\n");
 
     send_info_message();
     

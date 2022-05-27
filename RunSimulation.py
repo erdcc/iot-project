@@ -72,17 +72,17 @@ time1 = 0*t.ticksPerSecond();
 node1.bootAtTime(time1);
 print ">>>Will boot at time", time1/t.ticksPerSecond(), "[sec]";
 
-#print "Creating node 2...";
-#node2 = t.getNode(2);
-#time2 = 0*t.ticksPerSecond();
-#node2.bootAtTime(time2);
-#print ">>>Will boot at time", time2/t.ticksPerSecond(), "[sec]";
+print "Creating node 2...";
+node2 = t.getNode(2);
+time2 = 0*t.ticksPerSecond();
+node2.bootAtTime(time2);
+print ">>>Will boot at time", time2/t.ticksPerSecond(), "[sec]";
 
-#print "Creating node 3...";
-#node3 = t.getNode(3);
-#time3 = 0*t.ticksPerSecond();
-#node3.bootAtTime(time3);
-#print ">>>Will boot at time", time3/t.ticksPerSecond(), "[sec]";
+print "Creating node 3...";
+node3 = t.getNode(3);
+time3 = 0*t.ticksPerSecond();
+node3.bootAtTime(time3);
+print ">>>Will boot at time", time3/t.ticksPerSecond(), "[sec]";
 
 
 print "Creating radio channels..."
@@ -129,10 +129,9 @@ node1off = False;
 simtime = t.time();
 while (t.time() < simtime + (50 * t.ticksPerSecond())):
 	t.runNextEvent()
-	if(node1off == False):
-		if (t.time() >= (60 * t.ticksPerSecond())): 
-			node1.turnOff()
-			node1off = True
+	if(node1off == False and t.time() >= (60 * t.ticksPerSecond())):
+		node1.turnOff()
+		node1off = True
 	
 print "\n\n\nSimulation finished!";
 
