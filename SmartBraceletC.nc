@@ -31,7 +31,7 @@ implementation {
   am_addr_t address_coupled_device;
   uint8_t attempt = 0;
 
-  // Current and previous phase
+  // Current phases
   uint8_t phase[] = {0,0,0,0};
   
   sensor_status status;
