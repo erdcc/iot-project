@@ -4,8 +4,6 @@
 // Message struct
 typedef nx_struct sb_msg {
   	nx_uint8_t msg_type;
-  	nx_uint8_t msg_id;
-
   	nx_uint8_t data[20];
   	nx_uint8_t X;
   	nx_uint8_t Y;

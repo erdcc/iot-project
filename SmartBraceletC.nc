@@ -26,7 +26,7 @@ implementation {
   
   // Radio control
   bool busy = FALSE;
-  uint16_t counter = 0;
+
   message_t packet;
   am_addr_t address_coupled_device;
   uint8_t attempt = 0;
@@ -62,14 +62,13 @@ implementation {
   
  
   event void TimerPairing.fired() {
-    counter++;
     dbg("TimerPairing", "TimerPairing is fired @ %s\n", sim_time_string());
     if (!busy) {
       sb_msg_t* sb_pairing_message = (sb_msg_t*)call Packet.getPayload(&packet, sizeof(sb_msg_t));
       
       // Fill payload
       sb_pairing_message->msg_type = PAIRING; // 0 for pairing phase
-      sb_pairing_message->msg_id = counter;
+      
       //The node ID is divided by 2 so every 2 nodes will be the same number (0/2=0 and 1/2=0)
       //we get the same key for every 2 nodes: parent and child
       memcpy(sb_pairing_message->data, RANDOM_KEY[TOS_NODE_ID/2],20);
@@ -93,7 +92,7 @@ implementation {
     dbg("Timer60s", "Timer60s is fired @ %s\n", sim_time_string());
 	dbg_clear("Info", "\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
     dbg_clear("Info", "\t\t\tM I S S I N G      A L E R T   ! ! !\n");
-    dbg_clear("Info", "\t\t\tLast known location  X: %hhu, Y: %hhu\n", last_status.X, last_status.Y);
+    dbg_clear("Info", "\t\t\tLAST KNOWN LOCATION  X: %hhu, Y: %hhu\n", last_status.X, last_status.Y);
     dbg_clear("Info", "\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
     //send to serial here
 
@@ -151,19 +150,19 @@ implementation {
     // Print data of the received packet
 	  dbg("Radio_rec","Message received from mote %hhu at time %s\n", call AMPacket.source( bufPtr ), sim_time_string());
 	  dbg_clear("Info","\t|-----------------------------------------------------------------|\n");
-	  dbg_clear("Radio_pack","\t|\tPayload: type: %hu, msg_id: %hhu, data: %-23s|\n", mess->msg_type, mess->msg_id, mess->data);
+	  dbg_clear("Radio_pack","\t|\tPayload: type: %hu, data: %-34s|\n", mess->msg_type, mess->data);
     
     if (call AMPacket.destination( bufPtr ) == AM_BROADCAST_ADDR && memcmp(mess->data, RANDOM_KEY[TOS_NODE_ID/2],20) == 0){
       address_coupled_device = call AMPacket.source( bufPtr );
       phase[TOS_NODE_ID] = CONFIRMATION; //  confirmation of pairing 
       dbg_clear("Radio_pack","\t|\tMessage for PAIRING request received. Mote: %-14hhu|\n", address_coupled_device);
-      dbg_clear("Info","\t|\t%-50s|\n","This is the pair device!");
+      dbg_clear("Info","\t|\t%-58s|\n","This is the pair device!");
       dbg_clear("Info","\t|-----------------------------------------------------------------|\n");
       send_confirmation();
     
     } else if(call AMPacket.destination( bufPtr ) == AM_BROADCAST_ADDR ){
       dbg_clear("Radio_pack","\t|\tMessage for PAIRING request received. Mote: %-14hhu|\n", call AMPacket.source( bufPtr ));
-      dbg_clear("Radio_pack","\t|\tThis is not the right pair. Mote:%-20hhu|\n", call AMPacket.source( bufPtr ));
+      dbg_clear("Radio_pack","\t|\tThis is not the right pair. Mote:%-25hhu|\n", call AMPacket.source( bufPtr ));
       dbg_clear("Info","\t|-----------------------------------------------------------------|\n");
     
     }else if (call AMPacket.destination( bufPtr ) == TOS_NODE_ID && mess->msg_type == CONFIRMATION) {
@@ -197,8 +196,8 @@ implementation {
   event void FakeSensor.readDone(error_t result, sensor_status status_local) {
     status = status_local;
     dbg_clear("Info","\t|-----------------------------------------------------------------|\n");
-    dbg_clear("Sensors", "\t|\tSensor status: %-42s|\n", status.status);
-    dbg_clear("Sensors", "\t|\tPosition X: %hhu, Y: %-39hhu|\n", status_local.X, status_local.Y);
+    dbg_clear("Sensors", "\t|\tSensor status: %-43s|\n", status.status);
+    dbg_clear("Sensors", "\t|\tPosition X: %hhu, Y: %-40hhu|\n", status_local.X, status_local.Y);
     dbg_clear("Info","\t|-----------------------------------------------------------------|\n");
 
     send_info_message();
@@ -208,14 +207,11 @@ implementation {
 
   // Send confirmation in phase 1
   void send_confirmation(){
-    counter++;
     if (!busy) {
       sb_msg_t* sb_pairing_message = (sb_msg_t*)call Packet.getPayload(&packet, sizeof(sb_msg_t));
       
       // Fill payload
       sb_pairing_message->msg_type = CONFIRMATION; // confirmation of pairing
-      sb_pairing_message->msg_id = counter;
-      
       memcpy(sb_pairing_message->data, RANDOM_KEY[TOS_NODE_ID/2],20);
       
       // Require ack
@@ -232,14 +228,11 @@ implementation {
   void send_info_message(){
     
     if (attempt < 3){
-      counter++;
       if (!busy) {
         sb_msg_t* sb_pairing_message = (sb_msg_t*)call Packet.getPayload(&packet, sizeof(sb_msg_t));
         
         // Fill payload
         sb_pairing_message->msg_type = OPERATION; // 2 for INFO packet
-        sb_pairing_message->msg_id = counter;
-        
         sb_pairing_message->X = status.X;
         sb_pairing_message->Y = status.Y;
         memcpy(sb_pairing_message->data, status.status,20);
