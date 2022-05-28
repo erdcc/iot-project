@@ -33,10 +33,6 @@ implementation {
 
   // Current and previous phase
   uint8_t phase[] = {0,0,0,0};
-
-  
-  // Sensors
-  //bool sensors_read_completed = FALSE;
   
   sensor_status status;
   sensor_status last_status;
@@ -95,9 +91,10 @@ implementation {
   // Timer60s fired
   event void Timer60s.fired() {
     dbg("Timer60s", "Timer60s is fired @ %s\n", sim_time_string());
-    dbg("Info", "ALERT: MISSING\n");
-    dbg("Info","Last known location: %hhu, Y: %hhu\n\n", last_status.X, last_status.Y);
-
+	dbg_clear("Info", "\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+    dbg_clear("Info", "\t\t\tM I S S I N G      A L E R T   ! ! !\n");
+    dbg_clear("Info", "\t\t\tLast known location  X: %hhu, Y: %hhu\n", last_status.X, last_status.Y);
+    dbg_clear("Info", "\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
     //send to serial here
 
   }
@@ -179,15 +176,17 @@ implementation {
       // Enters if the packet is for this destination and if msg_type == 2
       //dbg("Info","|-------------------------------------------------------------|\n");
       dbg_clear("Radio_pack","\t|\t%-58s|\n","INFO message received");
-      dbg_clear("Info", "\t|\tPosition X: %hu, Y: %-39hu |\n", mess->X, mess->Y);
-      dbg_clear("Info", "\t|\tSensor status: %-42s |\n", mess->data);
+      dbg_clear("Info", "\t|\tPosition X: %hu, Y: %-40hu|\n", mess->X, mess->Y);
+      dbg_clear("Info", "\t|\tSensor status: %-43s|\n", mess->data);
       dbg_clear("Info","\t|-----------------------------------------------------------------|\n");
       last_status.X = mess->X;
       last_status.Y = mess->Y;
-      // check if FALLING
-      if (memcmp(mess->data,"FALLING",20) == 0){
       
-        dbg("Info", "ALERT: FALLING!\n");
+      // check if FALLING
+      if (memcmp(mess->data,falling_msg,20) == 0){
+        dbg_clear("Info", "\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+        dbg_clear("Info", "\t\t\tF A L L I N G      A L E R T   ! ! !\n");
+        dbg_clear("Info", "\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
  		//send to serial here
       }
       call Timer60s.startOneShot(60000);

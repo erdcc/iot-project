@@ -74,13 +74,13 @@ print ">>>Will boot at time", time1/t.ticksPerSecond(), "[sec]";
 
 print "Creating node 2...";
 node2 = t.getNode(2);
-time2 = 1*t.ticksPerSecond();
+time2 = 0*t.ticksPerSecond();
 node2.bootAtTime(time2);
 print ">>>Will boot at time", time2/t.ticksPerSecond(), "[sec]";
 
 print "Creating node 3...";
 node3 = t.getNode(3);
-time3 = 1*t.ticksPerSecond();
+time3 = 0*t.ticksPerSecond();
 node3.bootAtTime(time3);
 print ">>>Will boot at time", time3/t.ticksPerSecond(), "[sec]";
 
@@ -132,6 +132,17 @@ while (t.time() < simtime + (200 * t.ticksPerSecond())):
 	if(node1off == False and t.time() >= (60 * t.ticksPerSecond())):
 		node1.turnOff()
 		node1off = True
+	
+
+"""
+#this can be improved
+if(node1off == False and t.time() >= (60 * t.ticksPerSecond()) and t.time() < (150 * t.ticksPerSecond())):
+		node1.turnOff()
+		node1off = True
+	elif(node1off == True and t.time() >= (150 * t.ticksPerSecond())):
+		node1.bootAtTime(150 * t.ticksPerSecond())
+		node1off = False
+"""
 	
 print "\n\n\nSimulation finished!";
 

@@ -22,7 +22,7 @@ typedef struct sensorStatus {
 enum {
   AM_RADIO_TYPE = 6,
 };
-
+uint8_t falling_msg[20]="FALLING";
 
 static const char *RANDOM_KEY[]={
 	"ASDASDASDASDASDASDDD",
