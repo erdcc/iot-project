@@ -9,6 +9,7 @@ import time;
 
 from TOSSIM import *;
 
+
 t = Tossim([]);
 
 
@@ -124,8 +125,9 @@ for i in range(0, 4):
 
 
 print "Start simulation with TOSSIM! \n\n\n";
-node1off = False;
+sf = SerialForwarder(9002)
 
+"""
 simtime = t.time();
 while (t.time() < simtime + (200 * t.ticksPerSecond())):
 	t.runNextEvent()
@@ -133,16 +135,18 @@ while (t.time() < simtime + (200 * t.ticksPerSecond())):
 		node1.turnOff()
 		node1off = True
 	
+"""
 
-"""
 #this can be improved
-if(node1off == False and t.time() >= (60 * t.ticksPerSecond()) and t.time() < (150 * t.ticksPerSecond())):
+simtime = t.time();
+while (t.time() < simtime + (200 * t.ticksPerSecond())):
+	t.runNextEvent()
+	if(node1.isOn() and t.time() >= (60 * t.ticksPerSecond()) and t.time() < (150 * t.ticksPerSecond())):
 		node1.turnOff()
-		node1off = True
-	elif(node1off == True and t.time() >= (150 * t.ticksPerSecond())):
-		node1.bootAtTime(150 * t.ticksPerSecond())
-		node1off = False
-"""
+	elif(not node1.isOn() and t.time() >= (150 * t.ticksPerSecond())):
+		node1.turnOn()
+
+
 	
 print "\n\n\nSimulation finished!";
 

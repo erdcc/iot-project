@@ -94,6 +94,7 @@ implementation {
     dbg_clear("Info", "\t\t\tM I S S I N G      A L E R T   ! ! !\n");
     dbg_clear("Info", "\t\t\tLAST KNOWN LOCATION  X: %hhu, Y: %hhu\n", last_status.X, last_status.Y);
     dbg_clear("Info", "\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
+   
     //send to serial here
 
   }
@@ -109,10 +110,10 @@ implementation {
       
        }else if(phase[TOS_NODE_ID] == CONFIRMATION && call PacketAcknowledgements.wasAcked(bufPtr) ){
         // PHASE == 1 and ack received
-        
+        call TimerPairing.stop();
         phase[TOS_NODE_ID] = OPERATION; // Pairing phase 1 completed
         dbg("Radio_ack", "PAIRING-ACK received at time %s\n", sim_time_string());
-        dbg("Pairing","PAIRING completed for mote: %hhu\n\n", address_coupled_device);
+        
         
         // Start operational phase
         if (TOS_NODE_ID % 2 == 0){
@@ -170,6 +171,18 @@ implementation {
       dbg_clear("Radio_pack","\t|\t%-58s|\n","Message for CONFIRMATION received");
       dbg_clear("Info","\t|-----------------------------------------------------------------|\n");
       call TimerPairing.stop();
+      phase[TOS_NODE_ID] = OPERATION;
+      // Start operational phase
+        if (TOS_NODE_ID % 2 == 0){
+          // Parent bracelet
+          dbg("OperationalMode","Parent bracelet\n\n");
+          //call SerialControl.start();
+          call Timer60s.startOneShot(60000);
+        } else {
+          // Child bracelet
+          dbg("OperationalMode","Child bracelet\n\n");
+          call Timer10s.startPeriodic(10000);
+        }
       
     } else if (call AMPacket.destination( bufPtr ) == TOS_NODE_ID && mess->msg_type == OPERATION) {
       // Enters if the packet is for this destination and if msg_type == 2
