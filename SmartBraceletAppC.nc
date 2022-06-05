@@ -16,7 +16,6 @@ implementation {
 
   components new FakeSensorC();
   
-  //components SerialActiveMessageC as AMSerial;
   
   // Boot interface
   App.Boot -> MainC.Boot;
@@ -37,12 +36,7 @@ implementation {
   
 
   App.FakeSensor -> FakeSensorC;
-  
-/*
-  // Serial port
-  App.SerialControl -> AMSerial;
-  App.SerialAMSend -> AMSerial.AMSend[AM_MY_SERIAL_MSG];
-  App.SerialPacket -> AMSerial;*/
+
   
 }
 

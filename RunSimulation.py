@@ -125,7 +125,7 @@ for i in range(0, 4):
 
 
 print "Start simulation with TOSSIM! \n\n\n";
-sf = SerialForwarder(9002)
+
 
 """
 simtime = t.time();

@@ -9,7 +9,7 @@ typedef nx_struct sb_msg {
   	nx_uint8_t Y;
 } sb_msg_t;
 
-
+//sensor message
 typedef struct sensorStatus {
   uint8_t status[20];
   uint8_t X;
@@ -22,17 +22,19 @@ enum {
 };
 uint8_t falling_msg[20]="FALLING";
 
+//Random key list
 static const char *RANDOM_KEY[]={
-	"ASDASDASDASDASDASDDD",
-	"XCVXCVXCVXCVXCVXCVVV",
-	"WEWERWERWRWERWERWEEE",
-	"HJKHJKHJKHJKHJKHJKHJ",
+	"mcyurZJMIZROKf3zIHAi",
+	"TQ7cy9OZrGimlEOhaUPE",
+	"NNRVLfiNOfpmuvbj8o0Y",
+	"AZT25vwFz5yJKBnywvci",
 };
 
+//phases
 #define PAIRING 0
 #define CONFIRMATION 1
 #define OPERATION 2
-//S#define ALARM 3
+
 
 
 #endif
