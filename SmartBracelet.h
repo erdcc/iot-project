@@ -2,19 +2,19 @@
 #define SMARTBRACELET_H
 
 // Message struct
-typedef nx_struct sb_msg {
+typedef nx_struct msg {
   	nx_uint8_t msg_type;
   	nx_uint8_t data[20];
   	nx_uint8_t X;
   	nx_uint8_t Y;
-} sb_msg_t;
+} msg_t;
 
 //sensor message
-typedef struct sensorStatus {
+typedef struct sensor_msg {
   uint8_t status[20];
   uint8_t X;
   uint8_t Y;
-}sensor_status;
+}sensor_msg_t;
 
 // Constants
 enum {

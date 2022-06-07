@@ -17,7 +17,7 @@ module SmartBraceletC @safe() {
     interface Timer<TMilli> as Timer10s;
     interface Timer<TMilli> as Timer60s;
     
-    interface Read<sensor_status> as FakeSensor;
+    interface Read<sensor_msg_t> as FakeSensor;
   
   }
 }
@@ -33,8 +33,8 @@ implementation {
   // Current phases
   uint8_t phase[] = {0,0,0,0};
   
-  sensor_status status;
-  sensor_status last_status;
+  sensor_msg_t status;
+  sensor_msg_t last_status;
   
   void send_confirmation();
   void send_info_message();
@@ -63,7 +63,7 @@ implementation {
   event void TimerPairing.fired() {
     dbg("TimerPairing", "TimerPairing is fired @ %s\n", sim_time_string());
     if (!busy) {
-      sb_msg_t* sb_pairing_message = (sb_msg_t*)call Packet.getPayload(&packet, sizeof(sb_msg_t));
+      msg_t* sb_pairing_message = (msg_t*)call Packet.getPayload(&packet, sizeof(msg_t));
       
       // Fill payload
       sb_pairing_message->msg_type = PAIRING; // pairing phase
@@ -72,7 +72,7 @@ implementation {
       //we get the same key for every 2 nodes: parent and child
       memcpy(sb_pairing_message->data, RANDOM_KEY[TOS_NODE_ID/2],20);
             
-      if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(sb_msg_t)) == SUCCESS) {
+      if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(msg_t)) == SUCCESS) {
 	      dbg("Radio", "Broadcasting pairing packet with key=%s\n", RANDOM_KEY[TOS_NODE_ID/2]);	
 	      busy = TRUE;
       }
@@ -97,7 +97,7 @@ implementation {
 
   event void AMSend.sendDone(message_t* bufPtr, error_t error) {
     if (&packet == bufPtr && error == SUCCESS) {
-      sb_msg_t* message = (sb_msg_t*)call Packet.getPayload(&packet, sizeof(sb_msg_t));
+      msg_t* message = (msg_t*)call Packet.getPayload(&packet, sizeof(msg_t));
       dbg("Radio_sent", "Packet sent\n");
       busy = FALSE;
       
@@ -141,7 +141,7 @@ implementation {
   }
   
   event message_t* Receive.receive(message_t* bufPtr, void* payload, uint8_t len) {
-    sb_msg_t* mess = (sb_msg_t*)payload;
+    msg_t* mess = (msg_t*)payload;
     
     // Print data of the received packet
 	  dbg("Radio_rec","Message received from mote %hhu at time %s\n", call AMPacket.source( bufPtr ), sim_time_string());
@@ -202,7 +202,7 @@ implementation {
     return bufPtr;
   }
 
-  event void FakeSensor.readDone(error_t result, sensor_status status_local) {
+  event void FakeSensor.readDone(error_t result, sensor_msg_t status_local) {
     status = status_local;
     dbg_clear("Info","\t|-----------------------------------------------------------------|\n");
     dbg_clear("Sensors", "\t|\tSensor status: %-43s|\n", status.status);
@@ -215,7 +215,7 @@ implementation {
   // Send confirmation 
   void send_confirmation(){
     if (!busy) {
-      sb_msg_t* sb_pairing_message = (sb_msg_t*)call Packet.getPayload(&packet, sizeof(sb_msg_t));
+      msg_t* sb_pairing_message = (msg_t*)call Packet.getPayload(&packet, sizeof(msg_t));
       
       // Fill payload
       sb_pairing_message->msg_type = CONFIRMATION; // confirmation of pairing
@@ -224,7 +224,7 @@ implementation {
       // Require ack
       call PacketAcknowledgements.requestAck( &packet );
       
-      if (call AMSend.send(address_coupled_device, &packet, sizeof(sb_msg_t)) == SUCCESS) {
+      if (call AMSend.send(address_coupled_device, &packet, sizeof(msg_t)) == SUCCESS) {
         dbg("Radio", "Sending CONFIRMATION to mote %hhu\n", address_coupled_device);	
         busy = TRUE;
       }
@@ -234,7 +234,7 @@ implementation {
   // Send INFO message from child's bracelet
   void send_info_message(){
     if (!busy) {
-        sb_msg_t* sb_pairing_message = (sb_msg_t*)call Packet.getPayload(&packet, sizeof(sb_msg_t));
+        msg_t* sb_pairing_message = (msg_t*)call Packet.getPayload(&packet, sizeof(msg_t));
         
         // Fill payload
         sb_pairing_message->msg_type = OPERATION; 
@@ -245,7 +245,7 @@ implementation {
         // Require ack
         call PacketAcknowledgements.requestAck( &packet );
         
-        if (call AMSend.send(address_coupled_device, &packet, sizeof(sb_msg_t)) == SUCCESS) {
+        if (call AMSend.send(address_coupled_device, &packet, sizeof(msg_t)) == SUCCESS) {
           dbg("Radio", "Radio: sending INFO packet to mote %hhu \n", address_coupled_device);	
           busy = TRUE;
         }
